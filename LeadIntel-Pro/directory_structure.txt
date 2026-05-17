@@ -1,0 +1,40 @@
+/extension
+  manifest.json
+
+  /popup
+    popup.html --
+    popup.css --
+    popup.js --
+
+  /background
+    background.js --
+
+  /content
+    content.js--
+
+  /core
+    stateManager.js--
+    eventBus.js--
+
+  /services
+    extractionService.js--
+    campaignService.js--
+    exportService.js--
+
+  /utils
+    storage.js --
+    csv.js --
+    logger.js --
+    domUtils.js--
+    linkedinParser.js--
+    queryGenerator.js--
+    constants.js --
+
+  /assets
+    icon16.png
+    icon48.png
+    icon128.png
+    logo.png
+    empty-state.svg
+    export.svg
+    linkedin.svg

@@ -1,0 +1,81 @@
+{
+  "manifest_version": 3,
+
+  "name": "LeadIntel Pro - LinkedIn Lead Finder",
+
+  "description": "Premium LinkedIn lead discovery and intent intelligence extension for freelancers, agencies, recruiters, and sales teams.",
+
+  "version": "1.0.0",
+
+  "minimum_chrome_version": "114",
+
+  "permissions": [
+    "storage",
+    "tabs",
+    "scripting",
+    "downloads",
+    "activeTab"
+  ],
+
+  "host_permissions": [
+    "https://*.linkedin.com/*"
+  ],
+
+  "background": {
+    "service_worker": "background/background.js",
+    "type": "module"
+  },
+
+  "action": {
+    "default_title": "LeadIntel Pro",
+    "default_popup": "popup/popup.html"
+  },
+
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.linkedin.com/*"
+      ],
+
+      "js": [
+        "utils/constants.js",
+        "utils/logger.js",
+        "utils/storage.js",
+        "utils/domUtils.js",
+
+        "utils/linkedinParser/selectorRegistry.js",
+        "utils/linkedinParser/parserHelpers.js",
+        "utils/linkedinParser/searchParser.js",
+        "utils/linkedinParser/feedParser.js",
+        "utils/linkedinParser/peopleParser.js",
+        "utils/linkedinParser/semanticParser.js",
+        "utils/linkedinParser/fallbackParser.js",
+        "utils/linkedinParser/index.js",
+
+        "content/content.js"
+      ],
+
+      "run_at": "document_idle"
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "utils/*.js",
+        "utils/linkedinParser/*.js",
+        "assets/*"
+      ],
+
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

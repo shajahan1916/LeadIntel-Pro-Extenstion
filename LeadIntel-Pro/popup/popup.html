@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>LeadIntel Pro - LinkedIn Lead Finder</title>
+
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <div class="app-container">
+
+    <header class="topbar">
+      <div>
+        <h1>LeadIntel Pro</h1>
+        <p class="subtitle">LinkedIn Lead Finder</p>
+      </div>
+
+      <div class="status-badge" id="linkedinStatus">
+        Checking...
+      </div>
+    </header>
+
+    <section class="stats-grid">
+
+      <div class="stat-card">
+        <span class="stat-label">Total Leads</span>
+        <h2 id="leadCount">0</h2>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Duplicates</span>
+        <h2 id="duplicateCount">0</h2>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Campaigns</span>
+        <h2 id="campaignCount">0</h2>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Status</span>
+        <h2 id="engineStatus">Idle</h2>
+      </div>
+
+    </section>
+
+    <section class="card">
+
+      <div class="card-header">
+        <h3>Create Campaign</h3>
+      </div>
+
+      <div class="form-group">
+        <label>Campaign Name</label>
+
+        <input
+          type="text"
+          id="campaignName"
+          placeholder="Website Development Leads"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Keywords</label>
+
+        <textarea
+          id="campaignKeywords"
+          placeholder="website development, react developer, ecommerce"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Tags</label>
+
+        <input
+          type="text"
+          id="campaignTags"
+          placeholder="agency, saas, startup"
+        />
+      </div>
+
+      <button id="saveCampaignBtn" class="primary-btn">
+        Save Campaign
+      </button>
+
+    </section>
+
+    <section class="card">
+
+      <div class="card-header">
+        <h3>Campaigns</h3>
+      </div>
+
+      <div id="campaignList" class="campaign-list">
+
+        <div class="empty-state">
+          No campaigns yet
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="card">
+
+      <div class="card-header">
+        <h3>Extraction Controls</h3>
+      </div>
+
+      <div class="button-grid">
+
+        <button id="startExtractionBtn" class="primary-btn">
+          Start Extraction
+        </button>
+
+        <button id="pauseExtractionBtn" class="secondary-btn">
+          Pause
+        </button>
+
+        <button id="resumeExtractionBtn" class="secondary-btn">
+          Resume
+        </button>
+
+      </div>
+
+    </section>
+
+    <section class="card">
+
+      <div class="card-header">
+        <h3>Exports</h3>
+      </div>
+
+      <div class="button-grid">
+
+        <button id="exportCsvBtn" class="secondary-btn">
+          Export CSV
+        </button>
+
+        <button id="exportJsonBtn" class="secondary-btn">
+          Export JSON
+        </button>
+
+      </div>
+
+    </section>
+
+    <section class="card">
+
+      <div class="card-header">
+        <h3>Activity Logs</h3>
+      </div>
+
+      <div id="logContainer" class="log-container">
+        <div class="log-item">
+          Extension initialized
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <script type="module" src="popup.js"></script>
+
+</body>
+</html>
