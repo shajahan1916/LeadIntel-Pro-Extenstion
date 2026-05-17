@@ -213,3 +213,32 @@ textarea:focus {
   padding: 20px 0;
   font-size: 13px;
 }
+
+.campaign-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.campaign-actions button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  background: #1e293b;
+  color: white;
+  border: 1px solid #334155;
+}
+
+.campaign-actions button:hover {
+  background: #334155;
+}
+
+.campaign-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}

@@ -1,7 +1,8 @@
 import {
   getCampaigns,
   saveCampaign,
-  getLeads
+  getLeads,
+  deleteCampaign
 } from "../utils/storage.js";
 
 import {
@@ -167,58 +168,156 @@ async function renderCampaigns() {
     return;
   }
 
+  const leads =
+    await getLeads();
+
   elements.campaignList.innerHTML =
-    campaigns.map(campaign => `
+    campaigns.map(campaign => {
+
+      const totalLeads =
+        leads.filter(
+          lead =>
+            lead.campaignId ===
+            campaign.id
+        ).length;
+
+      return `
 
       <div
         class="campaign-item"
         data-id="${campaign.id}"
       >
 
-        <h4>${campaign.name}</h4>
+        <div class="campaign-top">
 
-        <div class="campaign-meta">
-          ${campaign.keywords.length} keywords
+          <div>
+
+            <h4>
+              ${campaign.name}
+            </h4>
+
+            <div class="campaign-meta">
+              ${campaign.keywords.length} keywords
+            </div>
+
+            <div class="campaign-meta">
+              ${totalLeads} leads
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="campaign-actions">
+
+          <button
+            class="campaign-run"
+            data-id="${campaign.id}"
+          >
+            Run
+          </button>
+
+          <button
+            class="campaign-view"
+            data-id="${campaign.id}"
+          >
+            View
+          </button>
+
+          <button
+            class="campaign-edit"
+            data-id="${campaign.id}"
+          >
+            Edit
+          </button>
+
+          <button
+            class="campaign-delete"
+            data-id="${campaign.id}"
+          >
+            Delete
+          </button>
+
         </div>
 
       </div>
+      `;
+    }).join("");
 
-    `).join("");
-
-  document
-    .querySelectorAll(
-      ".campaign-item"
-    )
-    .forEach(item => {
-
-      item.addEventListener(
-        "click",
-        () => {
-
-          document
-            .querySelectorAll(
-              ".campaign-item"
-            )
-            .forEach(card => {
-
-              card.style.border =
-                "1px solid #243041";
-            });
-
-          item.style.border =
-            "1px solid #2563eb";
-
-          selectedCampaignId =
-            item.dataset.id;
-
-          addLog(
-            "Campaign selected",
-            "success"
-          );
-        }
-      );
-    });
+  bindCampaignActions();
 }
+
+// async function renderCampaigns() {
+
+//   const campaigns =
+//     await getCampaigns();
+
+//   elements.campaignCount.textContent =
+//     campaigns.length;
+
+//   if (!campaigns.length) {
+
+//     elements.campaignList.innerHTML = `
+//       <div class="empty-state">
+//         No campaigns available
+//       </div>
+//     `;
+
+//     return;
+//   }
+
+//   elements.campaignList.innerHTML =
+//     campaigns.map(campaign => `
+
+//       <div
+//         class="campaign-item"
+//         data-id="${campaign.id}"
+//       >
+
+//         <h4>${campaign.name}</h4>
+
+//         <div class="campaign-meta">
+//           ${campaign.keywords.length} keywords
+//         </div>
+
+//       </div>
+
+//     `).join("");
+
+//   document
+//     .querySelectorAll(
+//       ".campaign-item"
+//     )
+//     .forEach(item => {
+
+//       item.addEventListener(
+//         "click",
+//         () => {
+
+//           document
+//             .querySelectorAll(
+//               ".campaign-item"
+//             )
+//             .forEach(card => {
+
+//               card.style.border =
+//                 "1px solid #243041";
+//             });
+
+//           item.style.border =
+//             "1px solid #2563eb";
+
+//           selectedCampaignId =
+//             item.dataset.id;
+
+//           addLog(
+//             "Campaign selected",
+//             "success"
+//           );
+//         }
+//       );
+//     });
+// }
 
 async function renderStats() {
 
@@ -329,6 +428,27 @@ async function startExtraction() {
     addLog(
       "Extraction started",
       "success"
+    );
+
+    setTimeout(
+      async () => {
+
+        const leads =
+          await getLeads();
+
+        await renderStats();
+
+        addLog(
+          `Extraction completed. ${leads.length} total leads available.`,
+          "success"
+        );
+
+        alert(
+          `Extraction completed successfully.\n\n${leads.length} total leads captured.\n\nYou can now export your leads.`
+        );
+
+      },
+      12000
     );
 
   } catch (error) {
@@ -502,9 +622,11 @@ async function sendToLinkedInTab(
   message
 ) {
 
-  const tabs = await chrome.tabs.query({
-    url: "*://*.linkedin.com/*"
-  });
+  const tabs =
+    await chrome.tabs.query({
+      url:
+        "*://*.linkedin.com/*"
+    });
 
   const linkedInTab =
     tabs.find(
@@ -522,33 +644,45 @@ async function sendToLinkedInTab(
     );
   }
 
+  const wait =
+    (ms) =>
+      new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            ms
+          )
+      );
+
   const attemptSend =
-    async (retry = 0) => {
+    async (
+      retry = 0
+    ) => {
 
       try {
 
-        return await chrome.tabs.sendMessage(
-          linkedInTab.id,
-          message
-        );
+        const response =
+          await chrome.tabs.sendMessage(
+            linkedInTab.id,
+            message
+          );
+
+        return response;
 
       } catch (error) {
 
-        if (retry >= 5) {
-          throw error;
+        console.warn(
+          `Retry ${retry + 1}`
+        );
+
+        if (retry >= 15) {
+
+          throw new Error(
+            "LinkedIn content script not ready yet. Refresh LinkedIn page and try again."
+          );
         }
 
-        console.warn(
-          "Retrying message send..."
-        );
-
-        await new Promise(
-          resolve =>
-            setTimeout(
-              resolve,
-              500
-            )
-        );
+        await wait(700);
 
         return attemptSend(
           retry + 1
@@ -558,7 +692,6 @@ async function sendToLinkedInTab(
 
   return attemptSend();
 }
-
 
 function clearForm() {
 
@@ -624,5 +757,164 @@ async function checkLinkedInTab() {
         "LinkedIn Not Open";
   }
 }
+
+function bindCampaignActions() {
+
+  document
+    .querySelectorAll(
+      ".campaign-run"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          selectedCampaignId =
+            button.dataset.id;
+
+          await startExtraction();
+        }
+      );
+    });
+
+  document
+    .querySelectorAll(
+      ".campaign-delete"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          const confirmed =
+            confirm(
+              "Delete this campaign?"
+            );
+
+          if (!confirmed) {
+            return;
+          }
+
+          await deleteCampaign(
+            button.dataset.id
+          );
+
+          addLog(
+            "Campaign deleted",
+            "success"
+          );
+
+          await renderCampaigns();
+
+          await renderStats();
+        }
+      );
+    });
+
+  document
+    .querySelectorAll(
+      ".campaign-edit"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          const campaigns =
+            await getCampaigns();
+
+          const campaign =
+            campaigns.find(
+              item =>
+                item.id ===
+                button.dataset.id
+            );
+
+          if (!campaign) {
+            return;
+          }
+
+          elements.campaignName.value =
+            campaign.name;
+
+          elements.campaignKeywords.value =
+            campaign.keywords.join(", ");
+
+          elements.campaignTags.value =
+            campaign.tags.join(", ");
+
+          selectedCampaignId =
+            campaign.id;
+
+          addLog(
+            "Campaign loaded for editing"
+          );
+        }
+      );
+    });
+
+  document
+    .querySelectorAll(
+      ".campaign-view"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          await viewCampaignLeads(
+            button.dataset.id
+          );
+        }
+      );
+    });
+}
+
+async function viewCampaignLeads(
+  campaignId
+) {
+
+  const leads =
+    await getLeads();
+
+  const filtered =
+    leads.filter(
+      lead =>
+        lead.campaignId ===
+        campaignId
+    );
+
+  if (!filtered.length) {
+
+    alert(
+      "No leads available"
+    );
+
+    return;
+  }
+
+  const preview =
+    filtered
+      .slice(0, 10)
+      .map(lead => {
+
+        return `
+${lead.fullName || "Unknown"}
+${lead.title || ""}
+${lead.company || ""}
+`;
+      })
+      .join("\n");
+
+  alert(
+    `Total Leads: ${filtered.length}\n\n${preview}`
+  );
+}
+
+
 
 initialize();
