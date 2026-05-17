@@ -1,5 +1,4 @@
-import { SELECTORS }
-from "./selectorRegistry.js";
+import { SELECTORS } from "./selectorRegistry.js";
 
 export function findFirstMatch(
   container,

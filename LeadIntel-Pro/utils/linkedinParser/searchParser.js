@@ -1,13 +1,6 @@
-import { SELECTORS }
-from "./selectorRegistry.js";
+import { SELECTORS } from "./selectorRegistry.js";
 
-import {
-  findAllMatches,
-  findFirstMatch,
-  getCleanText,
-  buildLead
-}
-from "./parserHelpers.js";
+import { findAllMatches, findFirstMatch, getCleanText, buildLead } from "./parserHelpers.js";
 
 export function parseSearchResults() {
 

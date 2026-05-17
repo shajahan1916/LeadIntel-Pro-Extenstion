@@ -1,22 +1,12 @@
-import {
-  parseSearchResults
-}
-from "./searchParser.js";
+import { parseSearchResults } from "./searchParser.js";
 
-import {
-  parseFeedPosts
-}
-from "./feedParser.js";
+import { parseFeedPosts } from "./feedParser.js";
 
-import {
-  semanticProfileParser
-}
-from "./semanticParser.js";
+import { semanticProfileParser } from "./semanticParser.js";
 
-import {
-  fallbackParser
-}
-from "./fallbackParser.js";
+import { fallbackParser } from "./fallbackParser.js";
+
+import { parsePeopleCards } from "./peopleParser.js";
 
 export function extractVisibleLeads() {
 
@@ -26,13 +16,14 @@ export function extractVisibleLeads() {
 
     ...parseFeedPosts(),
 
+    ...parsePeopleCards(),
+
     ...semanticProfileParser(),
 
     ...fallbackParser()
   ];
 
-  const unique =
-    new Map();
+  const unique = new Map();
 
   for (const lead of allLeads) {
 
@@ -40,11 +31,7 @@ export function extractVisibleLeads() {
       continue;
     }
 
-    if (
-      !unique.has(
-        lead.profileUrl
-      )
-    ) {
+    if (!unique.has(lead.profileUrl)) {
 
       unique.set(
         lead.profileUrl,
@@ -53,7 +40,5 @@ export function extractVisibleLeads() {
     }
   }
 
-  return [
-    ...unique.values()
-  ];
+  return [...unique.values()];
 }

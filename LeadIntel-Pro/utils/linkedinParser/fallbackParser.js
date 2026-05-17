@@ -1,7 +1,4 @@
-import {
-  buildLead
-}
-from "./parserHelpers.js";
+import { buildLead } from "./parserHelpers.js";
 
 export function fallbackParser() {
 

@@ -2,33 +2,96 @@ import {
   getCampaigns,
   saveCampaign,
   getLeads
-} from "./utils/storage.js";
-
-import {
-  ENGINE_STATUS
-} from "./utils/constants.js";
+} from "../utils/storage.js";
 
 import {
   log
-} from "./utils/logger.js";
+} from "../utils/logger.js";
 
 const elements = {
-  campaignName: document.getElementById("campaignName"),
-  campaignKeywords: document.getElementById("campaignKeywords"),
-  campaignTags: document.getElementById("campaignTags"),
 
-  saveCampaignBtn: document.getElementById("saveCampaignBtn"),
+  campaignName:
+    document.getElementById(
+      "campaignName"
+    ),
 
-  campaignList: document.getElementById("campaignList"),
+  campaignKeywords:
+    document.getElementById(
+      "campaignKeywords"
+    ),
 
-  leadCount: document.getElementById("leadCount"),
-  duplicateCount: document.getElementById("duplicateCount"),
-  campaignCount: document.getElementById("campaignCount"),
+  campaignTags:
+    document.getElementById(
+      "campaignTags"
+    ),
 
-  engineStatus: document.getElementById("engineStatus"),
+  saveCampaignBtn:
+    document.getElementById(
+      "saveCampaignBtn"
+    ),
 
-  logContainer: document.getElementById("logContainer")
+  startExtractionBtn:
+    document.getElementById(
+      "startExtractionBtn"
+    ),
+
+  pauseExtractionBtn:
+    document.getElementById(
+      "pauseExtractionBtn"
+    ),
+
+  resumeExtractionBtn:
+    document.getElementById(
+      "resumeExtractionBtn"
+    ),
+
+  exportCsvBtn:
+    document.getElementById(
+      "exportCsvBtn"
+    ),
+
+  exportJsonBtn:
+    document.getElementById(
+      "exportJsonBtn"
+    ),
+
+  campaignList:
+    document.getElementById(
+      "campaignList"
+    ),
+
+  leadCount:
+    document.getElementById(
+      "leadCount"
+    ),
+
+  duplicateCount:
+    document.getElementById(
+      "duplicateCount"
+    ),
+
+  campaignCount:
+    document.getElementById(
+      "campaignCount"
+    ),
+
+  engineStatus:
+    document.getElementById(
+      "engineStatus"
+    ),
+
+  logContainer:
+    document.getElementById(
+      "logContainer"
+    ),
+
+  linkedinStatus:
+    document.getElementById(
+      "linkedinStatus"
+    )
 };
+
+let selectedCampaignId = null;
 
 async function initialize() {
 
@@ -36,16 +99,62 @@ async function initialize() {
 
   await renderStats();
 
-  checkLinkedInTab();
+  await checkLinkedInTab();
 
-  addLog("Extension ready");
+  registerEventListeners();
+
+  addLog(
+    "Extension initialized",
+    "success"
+  );
+}
+
+function registerEventListeners() {
+
+  elements.saveCampaignBtn
+    .addEventListener(
+      "click",
+      createCampaign
+    );
+
+  elements.startExtractionBtn
+    .addEventListener(
+      "click",
+      startExtraction
+    );
+
+  elements.pauseExtractionBtn
+    .addEventListener(
+      "click",
+      pauseExtraction
+    );
+
+  elements.resumeExtractionBtn
+    .addEventListener(
+      "click",
+      resumeExtraction
+    );
+
+  elements.exportCsvBtn
+    .addEventListener(
+      "click",
+      exportCsv
+    );
+
+  elements.exportJsonBtn
+    .addEventListener(
+      "click",
+      exportJson
+    );
 }
 
 async function renderCampaigns() {
 
-  const campaigns = await getCampaigns();
+  const campaigns =
+    await getCampaigns();
 
-  elements.campaignCount.textContent = campaigns.length;
+  elements.campaignCount.textContent =
+    campaigns.length;
 
   if (!campaigns.length) {
 
@@ -58,109 +167,462 @@ async function renderCampaigns() {
     return;
   }
 
-  elements.campaignList.innerHTML = campaigns.map(campaign => `
-    <div class="campaign-item">
-      <h4>${campaign.name}</h4>
+  elements.campaignList.innerHTML =
+    campaigns.map(campaign => `
 
-      <div class="campaign-meta">
-        ${campaign.keywords.length} keywords
+      <div
+        class="campaign-item"
+        data-id="${campaign.id}"
+      >
+
+        <h4>${campaign.name}</h4>
+
+        <div class="campaign-meta">
+          ${campaign.keywords.length} keywords
+        </div>
+
       </div>
-    </div>
-  `).join("");
+
+    `).join("");
+
+  document
+    .querySelectorAll(
+      ".campaign-item"
+    )
+    .forEach(item => {
+
+      item.addEventListener(
+        "click",
+        () => {
+
+          document
+            .querySelectorAll(
+              ".campaign-item"
+            )
+            .forEach(card => {
+
+              card.style.border =
+                "1px solid #243041";
+            });
+
+          item.style.border =
+            "1px solid #2563eb";
+
+          selectedCampaignId =
+            item.dataset.id;
+
+          addLog(
+            "Campaign selected",
+            "success"
+          );
+        }
+      );
+    });
 }
 
 async function renderStats() {
 
-  const leads = await getLeads();
+  const leads =
+    await getLeads();
 
-  elements.leadCount.textContent = leads.length;
+  elements.leadCount.textContent =
+    leads.length;
+
+  elements.duplicateCount.textContent =
+    "0";
 }
 
 async function createCampaign() {
 
-  const name = elements.campaignName.value.trim();
+  const name =
+    elements.campaignName.value
+      .trim();
 
-  const keywords = elements.campaignKeywords.value
-    .split(",")
-    .map(item => item.trim())
-    .filter(Boolean);
+  const keywords =
+    elements.campaignKeywords.value
+      .split(",")
+      .map(item =>
+        item.trim()
+      )
+      .filter(Boolean);
 
-  const tags = elements.campaignTags.value
-    .split(",")
-    .map(item => item.trim())
-    .filter(Boolean);
+  const tags =
+    elements.campaignTags.value
+      .split(",")
+      .map(item =>
+        item.trim()
+      )
+      .filter(Boolean);
 
-  if (!name || !keywords.length) {
+  if (
+    !name ||
+    !keywords.length
+  ) {
 
-    addLog("Campaign name and keywords required", "error");
+    addLog(
+      "Campaign name and keywords required",
+      "error"
+    );
 
     return;
   }
 
   const campaign = {
-    id: crypto.randomUUID(),
+    id:
+      crypto.randomUUID(),
+
     name,
+
     keywords,
+
     tags,
-    createdAt: new Date().toISOString(),
+
+    createdAt:
+      new Date().toISOString(),
+
     stats: {
       leads: 0,
       duplicates: 0
     }
   };
 
-  await saveCampaign(campaign);
-
-  addLog(`Campaign "${name}" created`, "success");
+  await saveCampaign(
+    campaign
+  );
 
   clearForm();
 
   await renderCampaigns();
+
+  addLog(
+    `Campaign "${name}" created`,
+    "success"
+  );
 }
+
+async function startExtraction() {
+
+  if (!selectedCampaignId) {
+
+    addLog(
+      "Select a campaign first",
+      "error"
+    );
+
+    return;
+  }
+
+  try {
+
+    await sendToLinkedInTab({
+      type:
+        "START_EXTRACTION",
+
+      campaignId:
+        selectedCampaignId
+    });
+
+    elements.engineStatus
+      .textContent =
+        "Running";
+
+    addLog(
+      "Extraction started",
+      "success"
+    );
+
+  } catch (error) {
+
+    addLog(
+      "Failed to start extraction",
+      "error"
+    );
+
+    console.error(error);
+  }
+}
+
+async function pauseExtraction() {
+
+  try {
+
+    await sendToLinkedInTab({
+      type:
+        "PAUSE_EXTRACTION"
+    });
+
+    elements.engineStatus
+      .textContent =
+        "Paused";
+
+    addLog(
+      "Extraction paused"
+    );
+
+  } catch (error) {
+
+    console.error(error);
+  }
+}
+
+async function resumeExtraction() {
+
+  try {
+
+    await sendToLinkedInTab({
+      type:
+        "RESUME_EXTRACTION"
+    });
+
+    elements.engineStatus
+      .textContent =
+        "Running";
+
+    addLog(
+      "Extraction resumed"
+    );
+
+  } catch (error) {
+
+    console.error(error);
+  }
+}
+
+async function exportCsv() {
+
+  const leads =
+    await getLeads();
+
+  if (!leads.length) {
+
+    addLog(
+      "No leads available",
+      "error"
+    );
+
+    return;
+  }
+
+  const headers = [
+    "Name",
+    "Title",
+    "Company",
+    "Profile URL"
+  ];
+
+  const rows =
+    leads.map(lead => [
+      lead.fullName || "",
+      lead.title || "",
+      lead.company || "",
+      lead.profileUrl || ""
+    ]);
+
+  const csv = [
+    headers.join(","),
+    ...rows.map(row =>
+      row.join(",")
+    )
+  ].join("\n");
+
+  const blob =
+    new Blob(
+      [csv],
+      {
+        type:
+          "text/csv"
+      }
+    );
+
+  const url =
+    URL.createObjectURL(
+      blob
+    );
+
+  chrome.downloads.download({
+    url,
+    filename:
+      "leadintel_leads.csv"
+  });
+
+  addLog(
+    "CSV exported",
+    "success"
+  );
+}
+
+async function exportJson() {
+
+  const leads =
+    await getLeads();
+
+  if (!leads.length) {
+
+    addLog(
+      "No leads available",
+      "error"
+    );
+
+    return;
+  }
+
+  const blob =
+    new Blob(
+      [
+        JSON.stringify(
+          leads,
+          null,
+          2
+        )
+      ],
+      {
+        type:
+          "application/json"
+      }
+    );
+
+  const url =
+    URL.createObjectURL(
+      blob
+    );
+
+  chrome.downloads.download({
+    url,
+    filename:
+      "leadintel_leads.json"
+  });
+
+  addLog(
+    "JSON exported",
+    "success"
+  );
+}
+
+async function sendToLinkedInTab(
+  message
+) {
+
+  const tabs = await chrome.tabs.query({
+    url: "*://*.linkedin.com/*"
+  });
+
+  const linkedInTab =
+    tabs.find(
+      tab =>
+        tab.url &&
+        tab.url.includes(
+          "linkedin.com"
+        )
+    );
+
+  if (!linkedInTab?.id) {
+
+    throw new Error(
+      "No LinkedIn tab found"
+    );
+  }
+
+  const attemptSend =
+    async (retry = 0) => {
+
+      try {
+
+        return await chrome.tabs.sendMessage(
+          linkedInTab.id,
+          message
+        );
+
+      } catch (error) {
+
+        if (retry >= 5) {
+          throw error;
+        }
+
+        console.warn(
+          "Retrying message send..."
+        );
+
+        await new Promise(
+          resolve =>
+            setTimeout(
+              resolve,
+              500
+            )
+        );
+
+        return attemptSend(
+          retry + 1
+        );
+      }
+    };
+
+  return attemptSend();
+}
+
 
 function clearForm() {
 
-  elements.campaignName.value = "";
-  elements.campaignKeywords.value = "";
-  elements.campaignTags.value = "";
+  elements.campaignName.value =
+    "";
+
+  elements.campaignKeywords.value =
+    "";
+
+  elements.campaignTags.value =
+    "";
 }
 
-function addLog(message, type = "info") {
+function addLog(
+  message,
+  type = "info"
+) {
 
-  const logData = log(message, type);
+  const logData =
+    log(message, type);
 
-  const div = document.createElement("div");
+  const div =
+    document.createElement(
+      "div"
+    );
 
-  div.className = "log-item";
+  div.className =
+    "log-item";
 
-  div.textContent = `[${logData.timestamp}] ${message}`;
+  div.textContent =
+    `[${logData.timestamp}] ${message}`;
 
-  elements.logContainer.prepend(div);
+  elements.logContainer.prepend(
+    div
+  );
 }
 
 async function checkLinkedInTab() {
 
-  const tabs = await chrome.tabs.query({});
+  const tabs = await chrome.tabs.query({
+    url: "*://*.linkedin.com/*"
+  });
 
-  const linkedInTab = tabs.find(
-    tab => tab.url && tab.url.includes("linkedin.com")
-  );
-
-  const statusElement = document.getElementById("linkedinStatus");
+  const linkedInTab =
+    tabs.find(
+      tab =>
+        tab.url &&
+        tab.url.includes(
+          "linkedin.com"
+        )
+    );
 
   if (linkedInTab) {
 
-    statusElement.textContent = "LinkedIn Active";
+    elements.linkedinStatus
+      .textContent =
+        "LinkedIn Active";
 
   } else {
 
-    statusElement.textContent = "LinkedIn Not Open";
+    elements.linkedinStatus
+      .textContent =
+        "LinkedIn Not Open";
   }
 }
-
-elements.saveCampaignBtn.addEventListener(
-  "click",
-  createCampaign
-);
 
 initialize();

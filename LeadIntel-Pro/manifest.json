@@ -37,6 +37,7 @@
     "128": "assets/icon128.png"
   },
 
+
   "content_scripts": [
     {
       "matches": [
@@ -44,20 +45,6 @@
       ],
 
       "js": [
-        "utils/constants.js",
-        "utils/logger.js",
-        "utils/storage.js",
-        "utils/domUtils.js",
-
-        "utils/linkedinParser/selectorRegistry.js",
-        "utils/linkedinParser/parserHelpers.js",
-        "utils/linkedinParser/searchParser.js",
-        "utils/linkedinParser/feedParser.js",
-        "utils/linkedinParser/peopleParser.js",
-        "utils/linkedinParser/semanticParser.js",
-        "utils/linkedinParser/fallbackParser.js",
-        "utils/linkedinParser/index.js",
-
         "content/content.js"
       ],
 
@@ -68,6 +55,7 @@
   "web_accessible_resources": [
     {
       "resources": [
+        "content/*.js",
         "utils/*.js",
         "utils/linkedinParser/*.js",
         "assets/*"
